@@ -21,6 +21,7 @@ def check_gradient(f, x, delta=1e-5, tol = 1e-4):
     
     orig_x = x.copy()
     fx, analytic_grad = f(x)
+    print(fx, analytic_grad)
     assert np.all(np.isclose(orig_x, x, tol)), "Functions shouldn't modify input variables"
 
     assert analytic_grad.shape == x.shape
@@ -30,8 +31,21 @@ def check_gradient(f, x, delta=1e-5, tol = 1e-4):
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
         ix = it.multi_index
+        # print(np.array(x[ix]) + delta)
+        # print(f(np.array(x[ix]) + delta))
         analytic_grad_at_ix = analytic_grad[ix]
+
+        def _inc(x, delta):
+            return x+delta
+        inc_delta = np.vectorize(_inc)
+
         numeric_grad_at_ix = 0
+        arg_x_1 = inc_delta(x, delta)
+        arg_x_2 = inc_delta(x, -delta)
+        fx_1, _ = f(arg_x_1)
+        fx_2, _ = f(arg_x_2)
+        numeric_grad_at_ix = (fx_1 - fx_2) / (2*delta)
+        print(fx_1)
 
         # TODO compute value of numeric gradient of f to idx
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
