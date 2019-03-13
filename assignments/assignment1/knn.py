@@ -12,7 +12,7 @@ class KNN:
         self.train_X = X
         self.train_y = y
 
-    def predict(self, X, num_loops=1):
+    def predict(self, X, num_loops=0):
         '''
         Uses the KNN model to predict clases for the data samples provided
         
@@ -97,10 +97,9 @@ class KNN:
         # Using float32 to to save memory - the default is float64
         dists = np.zeros((num_test, num_train), np.float32)
         # TODO: Implement computing all distances with no loops!
-        sum1 = np.sum(X, axis=1)
-        sum2 = np.sum(self.train_X, axis=1)
-        dists = sum1.reshape((num_test, 1)) + sum2.reshape((1, num_train)) - 2*X.dot(self.train_X.T)
-        # dists = np.sqrt(dists)
+        x_new = X[:, np.newaxis]
+        dists = self.train_X - x_new
+        dists = np.linalg.norm(dists, axis=2, ord=1)
 
         return dists
 
@@ -147,6 +146,12 @@ class KNN:
         pred = np.zeros(num_test, np.int)
         for i in range(num_test):
             # TODO: Implement choosing best class based on k
-            # nearest training samples
-            pass
+            knn_ix = np.argsort(dists[i])[:self.k]
+            closest_y = self.train_y[knn_ix]
+            values, pos = np.unique(closest_y, return_inverse=True)
+            counts = np.bincount(pos)
+            maxpos = counts.argmax()
+
+            pred[i] = values[maxpos]
+
         return pred
