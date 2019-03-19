@@ -25,14 +25,6 @@ def check_gradient(f, x, delta=1e-5, tol = 1e-4):
 
     assert analytic_grad.shape == x.shape
 
-    def _two_point(x):
-        f1, _ = f(x+delta)
-        f2, _ = f(x-delta)
-        num_grad_x = (f1 - f2) / (2*delta)
-        return num_grad_x
-
-    two_point = np.vectorize(_two_point)
-    numeric_grad = two_point(x)
 
 
     # We will go through every dimension of x and compute numeric
@@ -42,7 +34,16 @@ def check_gradient(f, x, delta=1e-5, tol = 1e-4):
         ix = it.multi_index
 
         analytic_grad_at_ix = analytic_grad[ix]
-        numeric_grad_at_ix = numeric_grad[ix]
+
+        tmp1 = x.copy()
+        tmp1[ix] = tmp1[ix] + delta
+        f1, _ = f(tmp1)
+
+        tmp2 = x.copy()
+        tmp2[ix] = tmp2[ix] - delta
+        f2, _ = f(tmp2)
+
+        numeric_grad_at_ix = (f1 - f2) / (2*delta)
 
         # TODO compute value of numeric gradient of f to idx
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
