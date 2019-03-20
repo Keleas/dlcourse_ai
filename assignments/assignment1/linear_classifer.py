@@ -64,7 +64,7 @@ def softmax_with_cross_entropy(predictions, target_index):
     try:
         target_index[0]
         axis = 1
-    except:
+    except TypeError:
         axis = 0
 
     s = np.max(predictions, axis=axis)
@@ -78,9 +78,9 @@ def softmax_with_cross_entropy(predictions, target_index):
 
     eps = 1e-9
     if axis == 1:
-        target = np.zeros(predictions.shape[1])
-        target[target_index[0]] = 1
-    elif axis == 0:
+        target = np.zeros((n_samples, predictions.shape[1]))
+        target[range(n_samples), target_index] = 1
+    else:
         target = np.zeros(3)
         target[target_index] = 1
 
@@ -182,17 +182,13 @@ class LinearSoftmaxClassifier():
                 loss_func, grad_func = linear_softmax(x_batch, self.W, y_batch)
                 loss_reg, grad_reg = l2_regularization(self.W, reg)
 
-                print('func', loss_func)
-                print('reg', loss_reg)
-
                 loss_cur = loss_func + loss_reg
                 losses.append(loss_cur)
-                self.W -= learning_rate * grad_func + grad_reg
-                print(grad_reg)
+                self.W -= learning_rate * (grad_func + grad_reg)
 
             # end
             loss = np.mean(losses)
-            print("Epoch %i, loss: %f" % (epoch, loss))
+            # print("Epoch %i, loss: %f" % (epoch, loss))
             loss_history.append(loss)
 
         return loss_history
@@ -210,7 +206,9 @@ class LinearSoftmaxClassifier():
         y_pred = np.zeros(X.shape[0], dtype=np.int)
 
         # TODO Implement class prediction
-        raise Exception("Not implemented!")
+        y_pred = np.dot(X, self.W)
+
+        y_pred = np.array([x.argmax() for x in y_pred])
 
         return y_pred
 
